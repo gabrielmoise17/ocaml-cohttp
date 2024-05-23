@@ -77,4 +77,12 @@ module M = struct
     return ()
 
   let flush _x = return ()
+
+  let wait_eof_or_closed _ _ =
+    let open Lwt.Syntax in
+    (* Bind on a never-resolved promise ensures this call never returns,
+       meaning it never detects EOF. *)
+    let task, _resolver = Lwt.task () in
+    let* () = task in
+    Lwt.return_unit
 end

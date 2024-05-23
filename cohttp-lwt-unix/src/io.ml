@@ -80,3 +80,26 @@ let catch f =
     | ex -> Lwt.fail ex)
 
 let pp_error = Fmt.exn
+
+let wait_eof_or_closed conn ic =
+  let open Lwt.Infix in
+  let fd =
+    match conn with
+    | Conduit_lwt_unix.TCP { fd; _ } -> fd
+    | Domain_socket { fd; _ } -> fd
+    | Vchan _ -> assert false
+  in
+  let has_recv_eof fd =
+    let bytes = Bytes.create 1 in
+    (* MSG_PEEK does not consume data from the stream and 
+     * does not impact normal read operations *)
+    Lwt_unix.recv fd bytes 0 1 Unix.[ MSG_PEEK ] >|= fun n -> n = 0
+  in
+  let rec loop () =
+    (* start with a pause to yield control to the request handler *)
+    Lwt.pause () >>= fun () ->
+    if Lwt_io.is_closed ic then Lwt.return_unit
+    else
+      has_recv_eof fd >>= function true -> Lwt.return_unit | false -> loop ()
+  in
+  loop ()

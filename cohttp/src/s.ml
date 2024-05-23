@@ -58,6 +58,8 @@ module type IO = sig
   val flush : oc -> unit t
   (** [flush oc] will return when all previously buffered content from calling
       {!write} have been written to the output channel [oc]. *)
+
+  val wait_eof_or_closed : conn -> ic -> unit Lwt.t
 end
 
 module type Http_io = sig

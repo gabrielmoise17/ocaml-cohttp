@@ -130,9 +130,7 @@ module Make (IO : S.IO) = struct
 
   let rec handle_client ic oc conn spec =
     Request.read ic >>= function
-    | `Eof ->
-        spec.conn_closed conn;
-        Lwt.return_unit
+    | `Eof -> Lwt.fail (Failure "Client closed the connection, got EOF")
     | `Invalid data ->
         Log.err (fun m -> m "invalid input %s while handling client" data);
         spec.conn_closed conn;
@@ -152,9 +150,22 @@ module Make (IO : S.IO) = struct
   let callback spec io_id ic oc =
     let conn_id = Cohttp.Connection.create () in
     let conn_closed () = spec.conn_closed (io_id, conn_id) in
+    let is_conn_closed io_id ic =
+      let open Lwt.Infix in
+      IO.wait_eof_or_closed io_id ic >>= fun () ->
+      Log.debug (fun m ->
+          m "Client closed the connection, got EOF for %s"
+            (Cohttp.Connection.to_string conn_id));
+      Lwt.fail (Failure "Client closed the connection, got EOF")
+    in
     Lwt.catch
       (fun () ->
-        IO.catch (fun () -> handle_client ic oc (io_id, conn_id) spec)
+        IO.catch (fun () ->
+            Lwt.pick
+              [
+                handle_client ic oc (io_id, conn_id) spec;
+                is_conn_closed io_id ic;
+              ])
         >>= function
         | Ok () -> Lwt.return_unit
         | Error e ->
@@ -162,7 +173,11 @@ module Make (IO : S.IO) = struct
                 m "IO error while handling client: %a" IO.pp_error e);
             conn_closed ();
             Lwt.return_unit)
-      (fun e ->
-        conn_closed ();
-        Lwt.fail e)
+      (function
+        | Failure msg when msg = "Client closed the connection, got EOF" ->
+            conn_closed ();
+            Lwt.return_unit
+        | e ->
+            conn_closed ();
+            Lwt.fail e)
 end

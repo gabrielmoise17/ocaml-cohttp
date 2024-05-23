@@ -101,3 +101,5 @@ let write =
       return ())
 
 let flush = Writer.flushed
+
+let wait_eof_or_closed _ _ = Lwt.return_unit
