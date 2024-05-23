@@ -18,7 +18,7 @@
  (synopsis "Co-operative Client/Server HTTP library.")
  (preprocess
   (pps ppx_sexp_conv))
- (libraries lwt re stringext uri uri-sexp sexplib0 bytes base64))
+ (libraries re stringext uri uri-sexp sexplib0 bytes base64))
 
 (ocamllex accept_lexer)
 

@@ -78,6 +78,5 @@ module Make (Channel : Mirage_channel.S) = struct
       | ex -> Lwt.fail ex)
 
   let wait_eof_or_closed _conn _ic = 
-    let t, _ = Lwt.wait () in
-    t
+    fst @@ Lwt.wait ()
 end

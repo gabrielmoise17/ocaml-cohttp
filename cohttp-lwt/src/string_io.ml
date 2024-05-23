@@ -30,11 +30,3 @@ let read_line ic = return (Sio.M.read_line ic)
 let read ic n = return (Sio.M.read ic n)
 let write oc str = return (Sio.M.write oc str)
 let flush oc = return (Sio.M.flush oc)
-
-let wait_eof_or_closed _ _ =
-  let open Lwt.Syntax in
-  (* Bind on a never-resolved promise ensures this call never returns,
-     meaning it never detects EOF. *)
-  let task, _resolver = Lwt.task () in
-  let* () = task in
-  Lwt.return_unit
