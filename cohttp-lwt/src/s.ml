@@ -14,8 +14,8 @@ module type IO = sig
 
   val pp_error : Format.formatter -> error -> unit
 
-  (* [wait_eof_or_closed conn ic] blocks until either we receive an [eof] from 
-  [conn] or [ic] was closed asynchronously. *)
+  (* [wait_eof_or_closed conn ic] blocks until either we receive an [eof] from
+     [conn] or [ic] was closed asynchronously. *)
   val wait_eof_or_closed : conn -> ic -> unit t
 end
 

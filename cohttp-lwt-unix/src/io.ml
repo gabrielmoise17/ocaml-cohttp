@@ -14,6 +14,8 @@
  *
   }}}*)
 
+open Lwt.Infix
+
 exception IO_error of exn
 
 let () =
@@ -82,7 +84,6 @@ let catch f =
 let pp_error = Fmt.exn
 
 let wait_eof_or_closed conn ic =
-  let open Lwt.Infix in
   let fd =
     match conn with
     | Conduit_lwt_unix.TCP { fd; _ } -> fd

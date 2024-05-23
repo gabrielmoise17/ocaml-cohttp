@@ -77,6 +77,5 @@ module Make (Channel : Mirage_channel.S) = struct
       | Write_exn e -> Lwt.return_error (Write_error e)
       | ex -> Lwt.fail ex)
 
-  let wait_eof_or_closed _conn _ic = 
-    fst @@ Lwt.wait ()
+  let wait_eof_or_closed _conn _ic = fst @@ Lwt.wait ()
 end

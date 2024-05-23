@@ -151,7 +151,6 @@ module Make (IO : S.IO) = struct
     let conn_id = Cohttp.Connection.create () in
     let conn_closed () = spec.conn_closed (io_id, conn_id) in
     let is_conn_closed io_id ic =
-      let open Lwt.Infix in
       IO.wait_eof_or_closed io_id ic >>= fun () ->
       Log.debug (fun m ->
           m "Client closed the connection, got EOF for %s"
